@@ -202,18 +202,16 @@ impl PermitArgs {
         } else {
             wallet.as_ref().expect("signer resolved").sign_dynamic_typed_data(&typed_data).await?
         };
-        let calldata = hex::encode_prefixed(
-            permitCall {
-                owner,
-                spender,
-                value: self.amount,
-                deadline: self.deadline,
-                v: signature.v_byte(),
-                r: signature.r().into(),
-                s: signature.s().into(),
-            }
-            .abi_encode(),
-        );
+        let calldata = permitCall {
+            owner,
+            spender,
+            value: self.amount,
+            deadline: self.deadline,
+            v: signature.v_byte(),
+            r: signature.r().into(),
+            s: signature.s().into(),
+        }
+        .abi_encode();
         if self.broadcast {
             let send = SendTxArgs::contract_call(token.into(), calldata, self.send_tx, self.tx);
             return if let Some(browser) = browser {
@@ -228,7 +226,7 @@ impl PermitArgs {
                 "value": self.amount.to_string(), "nonce": nonce.to_string(),
                 "deadline": self.deadline.to_string(),
                 "signature": hex::encode_prefixed(signature.as_bytes()),
-                "calldata": calldata, "typed_data": typed_data,
+                "calldata": hex::encode_prefixed(calldata), "typed_data": typed_data,
             }))?;
         } else {
             print_scalar(hex::encode_prefixed(signature.as_bytes()))?;
